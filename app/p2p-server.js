@@ -1,7 +1,8 @@
 const Websocket = require('ws');
 const MESSAGE_TYPES = {
     chain: 'CHAIN',
-    transaction: 'TRANSACTION'
+    transaction: 'TRANSACTION',
+    clear_transactions: 'CLEAR_TRANSACTIONS'
 }
 const P2P_PORT = process.env.P2P_PORT || 8081;
 const peers = process.env.PEERS?process.env.PEERS.split(',') : [];
@@ -48,6 +49,9 @@ class p2pServer{
             case MESSAGE_TYPES.transaction:
                 this.tp.updateOrAddTransaction(data.transaction);
                 break;
+            case MESSAGE_TYPES:clear_transactions:
+                this.transactionPool.clear();
+                break;
         }
         });
     }
@@ -72,6 +76,12 @@ class p2pServer{
 
     broadCastTransaction(transaction){
         this.sockets.forEach(socket => this.sendTransaction(socket, transaction));
+    }
+
+    broadCastClearTransactions(){
+        this.sockets.forEach(s => s.send(JSON.stringify({
+            type: MESSAGE_TYPES.clear_transactions
+        })))
     }
 }
 

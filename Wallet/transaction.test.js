@@ -1,5 +1,6 @@
 const Wallet = require('./index');
 const Transaction = require('./transaction');
+const {MINING_REWARD} = require('../config');
 
 describe('Blockchain',() => {
     let transaction, wallet, recipient, amount;
@@ -24,12 +25,12 @@ describe('Blockchain',() => {
     });
 
     it('validates a valid transaction', () => {
-        expect(Transaction.verifyTranscation(transaction)).toBe(true);
+        expect(Transaction.verifyTransaction(transaction)).toBe(true);
     });
 
     it('invalidates a corrupt transaction', () => {
         transaction.outputs[0].amount = 5000;
-        expect(Transaction.verifyTranscation(transaction)).toBe(false);
+        expect(Transaction.verifyTransaction(transaction)).toBe(false);
     });
 
     describe('and updating a transaction', () => {
@@ -49,6 +50,16 @@ describe('Blockchain',() => {
         it(`Outputs an amount for next recipient`, () => {
             expect(transaction.outputs.find(output => output.address === nextRecipient).amount)
             .toEqual(nextAmount);
+        });
+    });
+
+    describe(`creating a reward transaction`, () => {
+        beforeEach(() => {
+            transaction = Transaction.rewardTransaction(wallet, Wallet.blockchainWallet());
+        });
+
+        it(`rewards the miner`, () => {
+            expect(transaction.outputs.find(t => t.address === wallet.publicKey).amount).toEqual(MINING_REWARD);
         });
     });
 
